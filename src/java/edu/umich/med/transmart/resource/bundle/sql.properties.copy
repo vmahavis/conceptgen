@@ -1,0 +1,149 @@
+
+//CONCEPT_NETWORK_GRAPH*******************************************************************************************************************************
+
+conceptCompleteInteraction=select fs.concept_id1, c1.concept_name, ct1.concept_type_name, ct1.node_color, ct1.node_line_color , c1.element_size, fs.concept_id2, c2.concept_name, ct2.concept_type_name, ct2.node_color, ct2.node_line_color , c2.element_size, fs.a from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2 where fs.concept_id1 in (?) and fs.concept_id2 in (?) and fs.concept_id1 = c1.concept_id and fs.concept_id2 = c2.concept_id and ct1.concept_type_id  = c1.concept_type_id and ct2.concept_type_id  = c2.concept_type_id
+conceptInteractionGeneFilter=select fs.concept_id1, c1.concept_name, ct1.concept_type_name, ct1.node_color, ct1.node_line_color , c1.element_size, fs.concept_id2, c2.concept_name, ct2.concept_type_name, ct2.node_color, ct2.node_line_color , c2.element_size, fs.a from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2, (select concept_id from db$conceptgen.all_concept_set  where element_id in (?) and concept_id in (?)) a ,(select concept_id from db$conceptgen.all_concept_set  where element_id in (?) and concept_id in (?)) b where fs.concept_id1 \= a.concept_id and fs.concept_id2 \= b.concept_id and fs.concept_id1\=c1.concept_id and fs.concept_id2\=c2.concept_id and ct1.concept_type_id \= c1.concept_type_id and ct2.concept_type_id \= c2.concept_type_id order by fs.ease_score 
+conceptElementListExport=select e.element_orig_id , e.element_name, gif.nomenclature_fullname from db$conceptgen.all_concept_set cs, db$conceptgen.element e , db$conceptgen.gene_info_human gif where cs.element_id = e.element_id and gif.geneid = e.element_orig_id and cs.concept_id = ?
+
+
+//CONCEPT_EXPLORER************************************************************************************************************************************
+
+conceptInteraction=select concept_id1, concept_name1, concept_type_name1, node_color1, node_line_color1 , element_size1, concept_id2, concept_name2, concept_type_name2, node_color2, node_line_color2 , element_size2, a from enrichment_public where concept_id1 in (?) and concept_id2 in (?)  
+conceptListNodeInteractionAll=select concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2, concept_type_id2, node_color, node_line_color from enrichment_public where concept_id1 = ? and concept_type_id2 not in (?)
+conceptListNodeInteraction=select concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from enrichment_public where concept_id1 = ? and fdr_ease <= ? and ease_score <= ? and concept_type_id2 not in (?)
+conceptTypeGroupSize=select concept_type_id2, concept_type_name2, concept_category2, node_color, node_line_color, count(concept_type_name2) csize from enrichment_public where concept_id1 = ? and fdr_ease <= ? and ease_score <= ? and concept_type_id2 not in (?) group by concept_type_id2, concept_type_name2, concept_category2, node_color, node_line_color order by csize
+conceptDetail=select c.concept_id, c.concept_name, ct.concept_type_name, c.element_size from db$conceptgen.concept c, db$conceptgen.concept_type ct where c.concept_type_id = ct.concept_type_id and c.concept_id = ?
+conceptElements=select distinct cs.concept_id, cs.element_id, e.element_name, gi.nomenclature_fullname, e.element_orig_id from db$conceptgen.concept_set cs, db$conceptgen.element e, db$conceptgen.gene_info_human gi where e.element_id = cs.element_id and gi.geneid = e.element_orig_id and cs.concept_id = ?
+conceptListExport=select concept_id2, concept_name2, concept_type_name2, concept_category2, element_size2, a, ease_score, fdr_ease from enrichment_public where concept_id1 = ? and fdr_ease <= ? and ease_score <= ? and concept_id2 in (?)
+conceptListExportAll=select concept_id2, concept_name2, concept_type_name2, concept_category2, element_size2, a, ease_score, fdr_ease from enrichment_public where concept_id1 = ? and fdr_ease <= ? and ease_score <= ?
+conceptListOverlapListExport=select distinct a.concept_id, e.element_orig_id from db$conceptgen.concept_set cs, db$conceptgen.element e, (select distinct cs1.element_id, cs2.concept_id from db$conceptgen.concept_set cs1 , db$conceptgen.concept_set cs2 where cs1.concept_id  = ? and cs1.element_id = cs2.element_id and cs2.concept_id in (?)) a where e.element_id = cs.element_id and cs.concept_id = ? and e.element_id = a.element_id
+conceptListOverlapListExportAll=select distinct a.concept_id, e.element_orig_id from db$conceptgen.concept_set cs, db$conceptgen.element e, (select distinct cs1.element_id, cs2.concept_id from db$conceptgen.concept_set cs1 , db$conceptgen.concept_set cs2 where cs1.concept_id  = ? and cs1.element_id = cs2.element_id) a where e.element_id = cs.element_id and cs.concept_id = ? and e.element_id = a.element_id
+conceptOverlapElements=select distinct cs.concept_id, cs.element_id, e.element_name, gi.nomenclature_fullname, e.element_orig_id from db$conceptgen.concept_set cs, db$conceptgen.element e, db$conceptgen.gene_info_human gi where e.element_id = cs.element_id and gi.geneid = e.element_orig_id and cs.concept_id = ? and e.element_id in (select distinct cs1.element_id from db$conceptgen.concept_set cs1 , db$conceptgen.concept_set cs2 where cs1.concept_id  = ? and cs2.concept_id = ? and cs1.element_id = cs2.element_id)
+
+
+conceptListInteraction=select concept_id1, concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from enrichment_public where  fdr_ease <= ? and ease_score <= ? and concept_id1 = (select concept_id from concept where ext_id = '?' and concept_type_id =  (select concept_type_id from concept_type where lower(concept_type_name) = lower('?')))
+conceptListInteractionCount=select count(*) from enrichment_public where  fdr_ease <= ? and ease_score <= ? and concept_id1 = (select concept_id from concept where ext_id = '?' and concept_type_id =  (select concept_type_id from concept_type where lower(concept_type_name) = lower('?')))
+conceptListCompleteInteraction=select concept_id1, concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from enrichment_public where  fdr_ease <= ? and ease_score <= ? and concept_id1 in (select concept_id2 from enrichment_public where concept_id1 = (select concept_id from concept where ext_id = '?' and concept_type_id = (select concept_type_id from concept_type where lower(concept_type_name) = lower('?')))) and concept_id2 in (select concept_id2 from enrichment_public where concept_id1 = (select concept_id from concept where ext_id = '?' and concept_type_id = (select concept_type_id from concept_type where lower(concept_type_name) = lower('?'))))
+
+
+//CONCEPT_EXPLORER_PRIVATE****************************************************************************************************************************
+
+conceptInteractionPrivate=select concept_id1, concept_name1, concept_type_name1, node_color1, node_line_color1 , element_size1, concept_id2, concept_name2, concept_type_name2, node_color2, node_line_color2 , element_size2, a from db$conceptgen.enrichment_private where concept_id1 in (?) and concept_id2 in (?)  
+conceptListNodeInteractionPrivateAll=select concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from db$conceptgen.enrichment_private where concept_id1 = ? and owner2 in ('?', 'Public') and concept_type_id2 not in (?) order by ease_score
+conceptListNodeInteractionPrivate=select concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from db$conceptgen.enrichment_private where concept_id1 = ? and fdr_ease <= ?  and ease_score <= ? and owner2 in ('?', 'Public') and concept_type_id2 not in (?) order by ease_score
+conceptTypeGroupSizePrivate=select concept_type_id2, concept_type_name2, concept_category2, node_color, node_line_color, count(concept_type_name2) csize from db$conceptgen.enrichment_private where concept_id1 = ? and fdr_ease <= ? and ease_score <= ? and owner2 in ('?', 'Public') and concept_type_id2 not in (?) group by concept_type_id2, concept_type_name2, concept_category2,  node_color, node_line_color order by csize
+conceptDetailPrivate=select c.concept_id, c.concept_name, ct.concept_type_name, c.element_size from db$conceptgen.all_concept c, db$conceptgen.concept_type ct where c.concept_type_id = ct.concept_type_id and c.concept_id = ?
+conceptElementsPrivate=select cs.concept_id, cs.element_id, e.element_name, gi.nomenclature_fullname, e.element_orig_id  from db$conceptgen.all_concept_set cs, db$conceptgen.element e, db$conceptgen.gene_info_human gi where e.element_id = cs.element_id and gi.geneid = e.element_orig_id and cs.concept_id = ?
+conceptListExportPrivate=select * from (select distinct fs.concept_id1 concept_id, c1.concept_name, ct1.concept_type_name, ct1.concept_category, c1.element_size, fs.a, fs.ease_score, fs.fdr_ease from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2  where fs.concept_id2 = ? and fs.concept_id1 != fs.concept_id2 and fs.concept_id1 = c1.concept_id and fs.concept_id2 = c2.concept_id and ct1.concept_type_id  = c1.concept_type_id and ct2.concept_type_id  = c2.concept_type_id and c1.owner in('?', 'Public') and fs.fdr_ease <= ?  union select distinct fs.concept_id2 concept_id, c2.concept_name, ct2.concept_type_name, ct2.concept_category, c2.element_size, fs.a, fs.ease_score, fs.fdr_ease from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2  where fs.concept_id1 = ? and fs.concept_id1 != fs.concept_id2 and fs.concept_id1 = c1.concept_id and fs.concept_id2 = c2.concept_id and ct1.concept_type_id  = c1.concept_type_id and ct2.concept_type_id  = c2.concept_type_id and c2.owner in('?', 'Public') and fs.fdr_ease <= ? ) where concept_id in (?) order by ease_score
+conceptListExportAllPrivate=select * from (select distinct fs.concept_id1 concept_id, c1.concept_name, ct1.concept_type_name, ct1.concept_category, c1.element_size, fs.a, fs.ease_score, fs.fdr_ease from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2  where fs.concept_id2 = ? and fs.concept_id1 != fs.concept_id2 and fs.concept_id1 = c1.concept_id and fs.concept_id2 = c2.concept_id and ct1.concept_type_id  = c1.concept_type_id and ct2.concept_type_id  = c2.concept_type_id and c1.owner in('?', 'Public') and fs.fdr_ease <= ?  union select distinct fs.concept_id2 concept_id, c2.concept_name, ct2.concept_type_name, ct2.concept_category, c2.element_size, fs.a, fs.ease_score, fs.fdr_ease from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1 , db$conceptgen.all_concept c2 , db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2  where fs.concept_id1 = ? and fs.concept_id1 != fs.concept_id2 and fs.concept_id1 = c1.concept_id and fs.concept_id2 = c2.concept_id and ct1.concept_type_id  = c1.concept_type_id and ct2.concept_type_id  = c2.concept_type_id and c2.owner in('?', 'Public') and fs.fdr_ease <= ? ) order by ease_score
+conceptListOverlapListExportPrivate=select distinct a.concept_id, e.element_orig_id from db$conceptgen.all_concept_set cs, db$conceptgen.element e, (select distinct cs1.element_id, cs2.concept_id from db$conceptgen.all_concept_set cs1 , db$conceptgen.all_concept_set cs2 where cs1.concept_id  = ? and cs1.element_id = cs2.element_id and cs2.concept_id in (?)) a where e.element_id = cs.element_id and cs.concept_id = ? and e.element_id = a.element_id
+conceptListOverlapListExportAllPrivate=select distinct a.concept_id, e.element_orig_id from db$conceptgen.all_concept_set cs, db$conceptgen.element e, (select distinct cs1.element_id, cs2.concept_id from db$conceptgen.all_concept_set cs1 , db$conceptgen.all_concept_set cs2 where cs1.concept_id  = ? and cs1.element_id = cs2.element_id) a where e.element_id = cs.element_id and cs.concept_id = ? and e.element_id = a.element_id
+conceptOverlapElementsPrivate=select cs.concept_id, cs.element_id, e.element_name, gi.nomenclature_fullname, e.element_orig_id from db$conceptgen.all_concept_set cs, db$conceptgen.element e, db$conceptgen.gene_info_human gi where e.element_id = cs.element_id and gi.geneid = e.element_orig_id and cs.concept_id = ? and e.element_id in (select distinct cs1.element_id from db$conceptgen.all_concept_set cs1 , db$conceptgen.all_concept_set cs2 where cs1.concept_id  = ? and cs2.concept_id = ? and cs1.element_id = cs2.element_id)
+
+
+conceptListInteractionPrivate=select concept_id1, concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from enrichment_private where fdr_ease <= ? and ease_score <= ? and concept_id1 = (select concept_id from db$conceptgen_private.concept where concept_name = '?' and owner = '?' )
+conceptListInteractionCountPrivate=select count(*) from enrichment_private where fdr_ease <= ? and ease_score <= ? and concept_id1 = (select concept_id from db$conceptgen_private.concept where concept_name = '?' and owner = '?' )
+conceptListCompleteInteractionPrivate=select concept_id1, concept_id2, concept_name2, concept_type_name2, element_size2, a, ease_score, fdr_ease, concept_category2 from enrichment_private where  fdr_ease <= ? and ease_score <= ? and concept_id1 = (select concept_id from db$conceptgen_private.concept where concept_name = '?' and owner = '?')
+
+
+
+//EDGE_DETAIL*****************************************************************************************************************************************
+
+edgeDetail=select cs1.concept_id, cs1.element_id, cs2.concept_id, cs2.element_id, e.element_name, gi.nomenclature_fullname, e.element_orig_id from db$conceptgen.all_concept_set cs1, db$conceptgen.all_concept_set cs2, db$conceptgen.element e , db$conceptgen.gene_info_human gi where cs1.element_id = cs2.element_id and e.element_id = cs1.element_id and gi.geneid = e.element_orig_id and cs1.concept_id = ? and cs2.concept_id = ?
+conceptInteractionDetail=select fs.concept_id1, c1.concept_name, ct1.concept_type_name, c1.element_size, fs.concept_id2, c2.concept_name, ct2.concept_type_name, c2.element_size, fs.a, fs.odds_ratio, fs.ease_score from db$conceptgen.all_fisher_stats fs, db$conceptgen.all_concept c1, db$conceptgen.all_concept c2, db$conceptgen.concept_type ct1, db$conceptgen.concept_type ct2 where fs.concept_id2 in (?) and fs.concept_id1 in (?) and fs.concept_id2 != fs.concept_id1 and c1.concept_id = fs.concept_id1 and c2.concept_id = fs.concept_id2 and ct1.concept_type_id = c1.concept_type_id and ct2.concept_type_id = c2.concept_type_id
+
+
+//CONCEPT_SEARCH**************************************************************************************************************************************
+
+conceptSearch=select * from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id, rownum rn from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id from db$conceptgen.search_concepts where lower(concept_name) like lower('%?%') order by ?)) where rn between ? and ? 
+conceptSearchLimit=select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id, rownum rn from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id from db$conceptgen.search_concepts where lower(concept_name) like lower('%?%'))) where rn between 0 and ? 
+conceptSearchCount=select count(*) from db$conceptgen.search_concepts where lower(concept_name) like lower('%?%')
+searchList=select concept_name from db$conceptgen.concept where lower(concept_name) like lower('?%') and rownum < 30 order by concept_name
+compoundSearch=select distinct name from db$conceptgen.metabolites where lower(name) like lower('?%') and rownum < 30 order by name
+conceptTypeSearch=select distinct ct.concept_type_id, ct.concept_type_name, ct.concept_category, ct.concept_size from db$conceptgen.concept_type ct, db$conceptgen.concept c where c.concept_type_id = ct.concept_type_id and c.owner = 'Public' order by ct.concept_category
+conceptBrowseSearch=select * from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id, rownum rn from (select concept_id, concept_name, enrichment_size, element_size, concept_type_name, url, ext_id from db$conceptgen.search_concepts where concept_type_name \= '?' order by ?)) where rn between ? and ? 
+conceptBrowseSearchCount=select count(*) from db$conceptgen.search_concepts where concept_type_name = '?'
+conceptSourceLink=select ct.concept_type_name, ct.url, c.ext_id from db$conceptgen.all_concept c, db$conceptgen.concept_type ct where c.concept_type_id = ct.concept_type_id and c.concept_id = ?
+
+homologGeneSymbolSearch=select e.element_orig_id from db$conceptgen.homologene_data h, db$conceptgen.element e where taxonid = 9606 and e.element_orig_id = h.geneid and e.element_type_id = 2 and hid in (select hid from db$conceptgen.homologene_data where taxonid = ? and lower(genesymbol) in (?))
+homologGeneIdSearch=select e.element_orig_id from db$conceptgen.homologene_data h, db$conceptgen.element e where taxonid = 9606 and e.element_orig_id = h.geneid and e.element_type_id = 2 and hid in (select hid from db$conceptgen.homologene_data where taxonid = ? and geneid in (?))
+
+
+geoLink=select concept_name from concept where ext_id = '?' and concept_type_id = 15
+meshLink=select concept_name from concept where ext_id = '?' and concept_type_id = 32
+
+//HEATMAP*********************************************************************************************************************************************
+
+edgeMapGrid=select e.element_id, em.concept_id, em.edge_count, e.element_name, c.concept_name from (select distinct a.cid concept_id, a.eid element_id, count(a.eid) edge_count from (select cs1.concept_id cid, cs2.concept_id, cs1.element_id eid from db$conceptgen.concept_set cs1, db$conceptgen.concept_set cs2 where cs1.concept_id in (?) and cs2.concept_id in (?) and cs1.element_id in  (select element_id from db$conceptgen.concept_set where concept_id = ?) and cs1.element_id = cs2.element_id ) a group by a.eid, a.cid) em , db$conceptgen.concept c, db$conceptgen.element e where em.concept_id = c.concept_id and em.element_id = e.element_id
+edgeMapGridPrivate=select e.element_id, em.concept_id, em.edge_count, e.element_name, c.concept_name from (select distinct a.cid concept_id, a.eid element_id, count(a.eid) edge_count from (select cs1.concept_id cid, cs2.concept_id, cs1.element_id eid from db$conceptgen.all_concept_set cs1, db$conceptgen.all_concept_set cs2 where cs1.concept_id in (?) and cs2.concept_id in (?) and cs1.element_id in  (select element_id from db$conceptgen.all_concept_set where concept_id = ?) and cs1.element_id = cs2.element_id ) a group by a.eid, a.cid) em , db$conceptgen.all_concept c, db$conceptgen.element e where em.concept_id = c.concept_id and em.element_id = e.element_id
+
+
+//MY_CONCEPT******************************************************************************************************************************************
+
+getMyConceptList=select a.ci, a.cn concept_name, a.csize concept_size, c1.element_size, ct.concept_type_name, TO_CHAR(a.create_date, 'MM/DD/YYYY') as create_date from (select distinct concept_id1 ci, c.concept_name cn,  count(concept_id1) csize, c.create_date from db$conceptgen_private.concept c,db$conceptgen_private.fisher_stats fs where c.owner = '?' and c.concept_id = fs.concept_id1  group by concept_id1, c.concept_name,  c.create_date order by csize desc) a , db$conceptgen.concept_type ct , db$conceptgen_private.concept c1 , db$conceptgen_private.statistics_analysis_status sas where ct.concept_type_id = c1.concept_type_id and c1.concept_id = a.ci and sas.concept_id = a.ci and sas.fisher_exact_test = 'completed' order by ?
+deleteMyConcept=update db$conceptgen_private.statistics_analysis_status set fisher_exact_test = 'deleted' where concept_id = ?
+checkConceptId=select concept_id from db$conceptgen_private.concept where owner = '?' and concept_id = ?
+getMyConceptGeneList=select e.element_name, e.element_orig_id from db$conceptgen_private.concept_set cs, db$conceptgen_private.concept c, db$conceptgen.element e  where c.concept_id = cs.concept_id and e.element_id = cs.element_id and c.concept_name = '?' and c.owner = '?'
+getConceptIdGeneList=select e.element_name, e.element_orig_id, gi.nomenclature_fullname  from db$conceptgen.concept_set cs, db$conceptgen.concept c,  db$conceptgen.gene_info_human gi, db$conceptgen.element e  where c.concept_id = cs.concept_id and gi.geneid = e.element_orig_id and e.element_id = cs.element_id and c.ext_id = '?'
+getConceptTypeSize=select concept_type_id2, concept_type_name2, concept_category2, node_color, node_line_color, count(concept_type_name2) csize from enrichment_public ep, concept c where c.concept_id = ep.concept_id1 and c.ext_id = '?' and fdr_ease <= ? and ease_score <= ? group by concept_type_id2, concept_type_name2, concept_category2, node_color, node_line_color order by csize
+
+//REGISTRATION****************************************************************************************************************************************
+
+insertUserRegistration=insert into db$conceptgen.user_info(userid, firstname, lastname, title, organization, department, email, password ) values ('?','?','?','?','?','?','?','?')
+insertUserPublicGroup= insert into db$conceptgen.user_group_map (group_id, userid) values (2, '?')
+
+
+//CONCEPTMATCH****************************************************************************************************************************************
+
+geneSymbolMatch=select distinct element_name from db$conceptgen.element where upper(element_name) in (select upper(id) from db$conceptgen.element_user_tmp) and element_type_id = 2
+geneIdMatch=select distinct element_orig_id from db$conceptgen.element where element_orig_id in (select id from db$conceptgen.element_user_tmp) and element_type_id = 2
+otherGeneIdMatch=select distinct element_orig_id from db$conceptgen.element where element_type_id \= 2 and element_orig_id in (select geneid from db$dwarehouse.homologene_data where hid \= (select hid from db$dwarehouse.homologene_data where geneid in (select id from db$conceptgen.element_user_tmp)) and taxonid \= 9606) 
+otherNullsetIDMatch=select distinct element_orig_id from db$conceptgen.element where element_type_id \= 2 and element_orig_id in (select geneid from db$dwarehouse.homologene_data where hid \= (select hid from db$dwarehouse.homologene_data where geneid in (select id from db$conceptgen.dictionary_user_tmp)) and taxonid \= 9606) 
+nullsetSymbolMatch=select distinct element_name from db$conceptgen.element where upper(element_name) in (select id from db$conceptgen.dictionary_user_tmp) and element_type_id = 2
+nullsetIDMatch=select distinct element_orig_id from db$conceptgen.element where element_orig_id in (select id from db$conceptgen.dictionary_user_tmp) and element_type_id = 2
+compoundMatch=select distinct element_orig_id from db$conceptgen.element where  element_type_id = 2 and element_orig_id in (select gene_id from db$conceptgen.metabolites where name in (?))
+truncateElementTmp=truncate table db$conceptgen.element_user_tmp
+truncateDictionaryTmp=truncate table db$conceptgen.dictionary_user_tmp
+
+
+
+geneSymbolMatchDemand=select distinct element_name from db$conceptgen.element where upper(element_name) in (select upper(id) from db$conceptgen.element_demand_tmp) and element_type_id = 2
+geneIdMatchDemand=select distinct element_orig_id from db$conceptgen.element where element_orig_id in (select id from db$conceptgen.element_demand_tmp) and element_type_id = 2
+
+truncateElementDemandTmp=truncate table db$conceptgen.element_demand_tmp
+truncateDictionaryDemandTmp=truncate table db$conceptgen.dictionary_demand_tmp
+
+//CONCPET_UPLOAD**************************************************************************************************************************************
+
+insertConcept=insert into db$conceptgen_private.concept (concept_id, concept_name, concept_type_id, owner, dictionary_id, element_size, create_date) values (?,'?', ?, '?', ?, ?, SYSDATE)
+insertConceptSetSymbol=insert into db$conceptgen_private.concept_set (concept_id, element_id) select ? , element_id from db$conceptgen.element where upper(element_name)  in (select upper(id) from element_user_tmp) and element_type_id = 2
+insertConceptSetGeneId=insert into db$conceptgen_private.concept_set (concept_id, element_id) select ? , element_id from db$conceptgen.element where element_orig_id in (select id from element_user_tmp) and element_type_id = 2
+insertConceptSetOtherGeneId=insert into db$conceptgen_private.concept_set (concept_id, element_id) select ? , element_id from db$conceptgen.element where element_orig_id in (select distinct element_orig_id from db$conceptgen.element where element_type_id = 2 and element_orig_id in (select geneid from db$dwarehouse.homologene_data where hid = (select hid from db$dwarehouse.homologene_data where geneid in (select id from db$conceptgen.element_user_tmp)) and taxonid = 9606)) and element_type_id = 2
+
+insertPrivateDictionary=insert into db$conceptgen_private.dictionary(dictionary_id, dictionary_name, owner) values (?,'?','?')
+insertPrivateDictionarySetSymbol=insert into db$conceptgen_private.dictionary_set (dictionary_id, element_id) select ? , element_id from db$conceptgen.element where upper(element_name) in (select id from dictionary_user_tmp) and element_type_id = 2
+insertPrivateDictionarySetGeneId=insert into db$conceptgen_private.dictionary_set (dictionary_id, element_id) select ? , element_id from db$conceptgen.element where element_orig_id in (select id from dictionary_user_tmp) and element_type_id = 2
+insertPrivateDictionarySetOtherGeneId=insert into db$conceptgen_private.dictionary_set (dictionary_id, element_id) select ? , element_id from db$conceptgen.element where element_orig_id in (select distinct element_orig_id from db$conceptgen.element where element_type_id = 2 and element_orig_id in (select geneid from db$dwarehouse.homologene_data where hid = (select hid from db$dwarehouse.homologene_data where geneid in (select id from db$conceptgen.dictionary_user_tmp)) and taxonid = 9606)) and element_type_id = 2
+
+insertStatisticsStatus=insert into db$conceptgen_private.statistics_analysis_status (concept_id, fisher_exact_test) values (?, 'test')
+
+getNewConceptId=select db$conceptgen.concept_id_seq.nextval from dual
+getNewPrivateDictionaryId=select db$conceptgen_private.dictionary_seq_id.nextval from dual
+getPrivateDictionaryId=select dictionary_id, dictionary_name from db$conceptgen_private.dictionary where owner = '?'
+analysisStatus=select fisher_exact_test from db$conceptgen_private.STATISTICS_ANALYSIS_STATUS where concept_id = ? and fisher_exact_test = 'test'
+
+insertElementTmp=insert into db$conceptgen.element_user_tmp (id) values ('?')
+insertDictionaryTmp=insert into db$conceptgen.dictionary_user_tmp (id) values ('?')
+
+insertElementDemandTmp=insert into db$conceptgen.element_demand_tmp (id) values ('?')
+insertDictionaryDemandTmp=insert into db$conceptgen.dictionary_demand_tmp (id) values ('?')
+
+insertUserStatistic=insert into db$conceptgen.anonymous_user_statistics (user_ipaddress, search_query, date_time) values ('?','?',SYSDATE)
+
+
+
+//****************************************************************************************************************************************************
+userRetrival=select userid, password, firstname, lastname from db$conceptgen.user_info where userid = '?'
+
+
+

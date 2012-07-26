@@ -1,0 +1,61 @@
+
+body {
+	font-family: Helvetica;
+	font-size: 12px;
+	color: #444;
+	background-color: #fff;
+	margin: auto;
+	line-height: 150%;
+}
+
+hr {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border: none 0;
+	border-top: 1px dashed #bebebe;
+	height: 1px;
+}
+
+a {
+	color: #4577D4;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #FF7400;
+	text-decoration: none;
+}
+
+/* CSS ID OBJECTS ----------------------------------------------------------------------------------------------------------------------- */
+
+#conceptTitle {
+	padding-top: 20px;
+	font-size: 24px;
+}
+
+
+#mainFrame {
+	
+	margin: 0px auto;
+	width: 1200px;
+}
+
+/* CSS CLASS OBJECTS -------------------------------------------------------------------------------------------------------------------- */
+
+
+.container {
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px; /* future proofing */
+	-khtml-border-radius: 10px; /* for old Konqueror browsers */
+	border: 1px;
+	border-color: #DDD;
+	border-style: solid;
+	width: 1170px;
+	background-color: #fff;
+	padding: 15px;
+	overflow: hidden;  
+	position: relative;
+	padding-bottom: 40px;
+	margin-bottom: 40px;
+}}
